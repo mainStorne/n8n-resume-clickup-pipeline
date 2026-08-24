@@ -74,23 +74,33 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    - ClickUp API
    - Anthropic API
 
-5. **Import the workflows** — in n8n, go to Workflows → Import from File, and import every file in [`workflows/`](./workflows). Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one (Google Drive, Postgres, ClickUp, Anthropic).
+5. **Import the workflows** — the whole pipeline (all workflows, their sub-workflow links, referenced credentials, the `SQL_CONFIGS` data table, and tags) ships as a single package, [`export.n8np`](./export.n8np). Import it with the [n8n CLI](https://www.npmjs.com/package/@n8n/cli):
+
+   ```bash
+   n8n-cli package import export.n8np
+   ```
+
+   Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one (Google Drive, Postgres, ClickUp, Anthropic).
 
 6. **Create the `cv_queue` table** in Postgres:
 
    ```sql
-   CREATE TABLE public.cv_queue (
-     id           serial PRIMARY KEY,
-     "fileId"     text UNIQUE NOT NULL,
-     "fileName"   text NOT NULL,
-     "mimeType"   text,
-     "webViewLink" text,
-     status       text NOT NULL DEFAULT 'pending',
-     attempts     int NOT NULL DEFAULT 0,
-     consumer_id  int,
-     started_at   timestamptz,
-     platform     text,
-     "updatedAt"  timestamptz
+   CREATE TABLE IF NOT EXISTS public.cv_queue
+   (
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    "fileId" text COLLATE pg_catalog."default" NOT NULL,
+    "fileName" text COLLATE pg_catalog."default" NOT NULL,
+    "mimeType" text COLLATE pg_catalog."default",
+    status text COLLATE pg_catalog."default" NOT NULL DEFAULT 'pending'::text,
+    "webViewLink" text COLLATE pg_catalog."default",
+    started_at timestamp with time zone,
+    consumer_id integer,
+    attempts integer NOT NULL DEFAULT 0,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    platform text COLLATE pg_catalog."default",
+    CONSTRAINT cv_queue_pkey PRIMARY KEY (id),
+    CONSTRAINT "cv_queue_fileId_key" UNIQUE ("fileId")
    );
    ```
 
