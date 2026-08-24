@@ -94,7 +94,7 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    );
    ```
 
-7. **Create the `SQL_CONFIGS` Data Table** in n8n (Data Tables → New), with columns `config_name` (string) and `config_value` (string), and seed three rows:
+7. **Create the `SQL_CONFIGS` Data Table** in n8n (Data Tables → New), with columns `config_name` (string) and `config_value` (string), and seed three rows. Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one:
 
    | config_name              | config_value |
    |---------------------------|--------------|
