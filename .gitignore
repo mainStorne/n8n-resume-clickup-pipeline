@@ -1,0 +1,5 @@
+.env
+n8n_data/
+.n8n/
+*.sqlite
+.claude

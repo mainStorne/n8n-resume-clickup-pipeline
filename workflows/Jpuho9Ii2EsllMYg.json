@@ -1,0 +1,1120 @@
+{
+  "updatedAt": "2026-08-24T13:07:17.336Z",
+  "createdAt": "2026-08-19T12:55:30.323Z",
+  "id": "Jpuho9Ii2EsllMYg",
+  "name": "Consumer 1",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "af6c0418-9d3b-4bb0-9d66-16a2e893a51d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        656,
+        80
+      ],
+      "id": "bfe607a9-9aaa-49e0-9e2a-42924560d602",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NTgni5EEgaOaWNqe",
+          "mode": "list",
+          "cachedResultName": "SQL_CONFIGS",
+          "cachedResultUrl": "/projects/GDnKbUIIpnxmIyFO/datatables/NTgni5EEgaOaWNqe"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "config_name",
+              "keyValue": "workflow_lock_consumer1"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "config_value": "true"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "config_name",
+              "displayName": "config_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "config_value",
+              "displayName": "config_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        -96
+      ],
+      "id": "6f1522c7-0e4d-4233-b420-63eff607aaee",
+      "name": "Lock the pipeline"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NTgni5EEgaOaWNqe",
+          "mode": "list",
+          "cachedResultName": "SQL_CONFIGS",
+          "cachedResultUrl": "/projects/GDnKbUIIpnxmIyFO/datatables/NTgni5EEgaOaWNqe"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "config_name",
+              "keyValue": "workflow_lock_consumer1"
+            }
+          ]
+        },
+        "returnAll": "={{ true  }}"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "413a9efd-bd8f-46f0-a10c-6b58647e7ad9",
+      "name": "Get current configs"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NTgni5EEgaOaWNqe",
+          "mode": "list",
+          "cachedResultName": "SQL_CONFIGS",
+          "cachedResultUrl": "/projects/GDnKbUIIpnxmIyFO/datatables/NTgni5EEgaOaWNqe"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "config_name",
+              "keyValue": "workflow_lock_consumer1"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "config_value": "false"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "config_name",
+              "displayName": "config_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "config_value",
+              "displayName": "config_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1712,
+        -48
+      ],
+      "id": "cdbe42a7-0ab8-487b-9348-08af8455a3eb",
+      "name": "Release the pipeline2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a2dbb182-abba-4388-a2e4-ebe84aa978ae",
+              "leftValue": "={{ $json.config_value }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "302582ea-b8b2-45ae-942b-a05db95a54e1",
+      "name": "If locked"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE public.cv_queue\nSET status = 'processing',\n    attempts = attempts + 1,\n    consumer_id = 1,\n    started_at = now()\nWHERE id IN (\n    SELECT id FROM public.cv_queue\n    WHERE status = 'pending'\n    ORDER BY id ASC\n    LIMIT 10\n    FOR UPDATE SKIP LOCKED\n)\nRETURNING *",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1056,
+        -128
+      ],
+      "id": "9fef3f5f-0d45-4e04-aec6-378598a41094",
+      "name": "Get pending items",
+      "credentials": {
+        "postgres": {
+          "id": "DHwkXK9DVm8QzI3Q",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "euQpvqdZ4dnGiBgR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/euQpvqdZ4dnGiBgR",
+          "cachedResultName": "Parsing Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "fileId": "={{ $json.fileId }}",
+            "fileName": "={{ $json.fileName }}",
+            "mimeType": "={{ $json.mimeType }}",
+            "status": "={{ $json.status }}",
+            "platform": "={{ $json.platform }}",
+            "errorMessage": "={{ $json.error_message }}",
+            "consumerId": "={{ $json.consumer_id }}",
+            "attempts": "={{ $json.attempts }}",
+            "updatedAt": "={{ $json.updated_at }}",
+            "createdAt": "={{ $json.created_at }}",
+            "startedAt": "={{ $json.started_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "fileId",
+              "displayName": "fileId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "fileName",
+              "displayName": "fileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "mimeType",
+              "displayName": "mimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "updatedAt",
+              "displayName": "updatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "attempts",
+              "displayName": "attempts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "consumerId",
+              "displayName": "consumerId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "createdAt",
+              "displayName": "createdAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "startedAt",
+              "displayName": "startedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1776,
+        192
+      ],
+      "id": "97771968-fe79-4e15-a73b-e16f3b256a07",
+      "name": "Call 'Parsing Workflow'"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1536,
+        192
+      ],
+      "id": "a91d1b93-e9f8-419f-a3f7-95e296f0b4b7",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ad9b7110-656b-4945-bfcc-4163202151f5",
+              "leftValue": "={{ $json.success === undefined }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        176
+      ],
+      "id": "4d173892-dbff-4414-be4a-3d1c3094661e",
+      "name": "If",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NTgni5EEgaOaWNqe",
+          "mode": "list",
+          "cachedResultName": "SQL_CONFIGS",
+          "cachedResultUrl": "/projects/GDnKbUIIpnxmIyFO/datatables/NTgni5EEgaOaWNqe"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "config_name",
+              "keyValue": "workflow_lock_consumer1"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "config_value": "false"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "config_name",
+              "displayName": "config_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "config_value",
+              "displayName": "config_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        560
+      ],
+      "id": "76e273b0-cdd8-477d-a9ef-05c5d6e1a103",
+      "name": "Release the pipeline"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "IBcCxWGtf5McjSMa",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/IBcCxWGtf5McjSMa",
+          "cachedResultName": "ClickUp"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "CreatedAt": "={{ $('Get pending items').item.json.created_at.toDateTime().toMillis() }}",
+            "FileName": "={{ $('Get pending items').item.json.fileName }}",
+            "WebViewLink": "={{ $('Get pending items').item.json.webViewLink }}",
+            "First Name": "={{ $('Call \\'Parsing Workflow\\'').item.json['First Name'] }}",
+            "Last Name": "={{ $('Call \\'Parsing Workflow\\'').item.json['Last Name'] }}",
+            "Phone Number": "={{ $('Call \\'Parsing Workflow\\'').item.json['Phone Number'] }}",
+            "countryShortName": "={{ $('Call \\'Parsing Workflow\\'').item.json.countryShortName }}",
+            "Time Zone": "={{ $('Call \\'Parsing Workflow\\'').item.json['Time Zone'] }}",
+            "Total experience": "={{ $('Call \\'Parsing Workflow\\'').item.json['Total experience'] }}",
+            "Email Address": "={{ $('Call \\'Parsing Workflow\\'').item.json['Email Address'] }}",
+            "Age Estimate": "={{ $json['Age estimate'] }}",
+            "Summary": "={{ $json.Summary }}",
+            "Status": "={{ $json.Status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Age Estimate",
+              "displayName": "Age Estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "countryShortName",
+              "displayName": "countryShortName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "Total experience",
+              "displayName": "Total experience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time Zone",
+              "displayName": "Time Zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "WebViewLink",
+              "displayName": "WebViewLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "CreatedAt",
+              "displayName": "CreatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "FileName",
+              "displayName": "FileName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2144,
+        192
+      ],
+      "id": "91e9ea6e-9384-4896-afc8-a7835c161196",
+      "name": "Save to ClickUp"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "cv_queue",
+          "mode": "list",
+          "cachedResultName": "cv_queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Get pending items').item.json.id }}",
+            "platform": "ClickUp",
+            "status": "finished"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fileId",
+              "displayName": "fileId",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fileName",
+              "displayName": "fileName",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "mimeType",
+              "displayName": "mimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "consumer_id",
+              "displayName": "consumer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "attempts",
+              "displayName": "attempts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "started_at",
+              "displayName": "started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "webViewLink",
+              "displayName": "webViewLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        2352,
+        192
+      ],
+      "id": "c9b37221-a5de-4e93-9b82-54718d3a601c",
+      "name": "Update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "DHwkXK9DVm8QzI3Q",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6edfe4e4-ec79-4254-ab86-38562b834025",
+              "leftValue": "={{ $input.item.json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1952,
+        224
+      ],
+      "id": "b05b872d-5741-48e7-82e1-1b76a4efb8eb",
+      "name": "If1"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get current configs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        []
+      ]
+    },
+    "Get current configs": {
+      "main": [
+        [
+          {
+            "node": "If locked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lock the pipeline": {
+      "main": [
+        [
+          {
+            "node": "Get pending items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Release the pipeline2": {
+      "main": [
+        []
+      ]
+    },
+    "If locked": {
+      "main": [
+        [
+          {
+            "node": "Lock the pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get pending items": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Parsing Workflow'": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Release the pipeline2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Parsing Workflow'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Release the pipeline2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to ClickUp": {
+      "main": [
+        [
+          {
+            "node": "Update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Save to ClickUp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "ZpfkVNmsTb0ci2D3"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      }
+    ],
+    "Get current configs": [
+      {
+        "json": {
+          "config_name": "workflow_lock_consumer1",
+          "config_value": "false",
+          "id": 4,
+          "createdAt": "2026-08-19T13:02:24.770Z",
+          "updatedAt": "2026-08-20T12:10:29.265Z"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Call 'Parsing Workflow'": [
+      {
+        "json": {}
+      }
+    ]
+  },
+  "versionId": "94907983-5d86-4645-8a26-e026407f94d4",
+  "activeVersionId": "94907983-5d86-4645-8a26-e026407f94d4",
+  "versionCounter": 273,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "versionMetadata": {
+    "name": "Version 94907983",
+    "description": ""
+  }
+}

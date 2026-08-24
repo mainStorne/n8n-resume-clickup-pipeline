@@ -1,0 +1,422 @@
+{
+  "updatedAt": "2026-08-24T13:08:39.372Z",
+  "createdAt": "2026-08-19T14:18:03.182Z",
+  "id": "euQpvqdZ4dnGiBgR",
+  "name": "Parsing Workflow",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "id",
+              "type": "number"
+            },
+            {
+              "name": "fileId"
+            },
+            {
+              "name": "fileName"
+            },
+            {
+              "name": "mimeType"
+            },
+            {
+              "name": "updatedAt"
+            },
+            {
+              "name": "platform"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "attempts",
+              "type": "number"
+            },
+            {
+              "name": "errorMessage"
+            },
+            {
+              "name": "consumerId",
+              "type": "number"
+            },
+            {
+              "name": "createdAt"
+            },
+            {
+              "name": "startedAt"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        -48
+      ],
+      "id": "8b338b1d-86fa-46de-8032-5aba17cf7d79",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7a1372c2-1590-4b0f-93b6-93e3b4057439",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        -32
+      ],
+      "id": "99ee4fe0-04a9-4c1d-91d6-492b31a41541",
+      "name": "Switch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        32
+      ],
+      "id": "47a1661e-e520-4ddf-bdea-0a7ec8f56c25",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "cachedResultName": "claude-sonnet-5",
+          "mode": "list",
+          "value": "claude-sonnet-5"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Extract the fields from the text below.\n\n<input>\n{{ $json.text }}\n</input>"
+            }
+          ]
+        },
+        "options": {
+          "system": "You are a strict JSON extraction engine for resumes/CVs. Your only function is to extract and derive structured data from the resume text provided by the user and return it as valid JSON. You do not chat, explain, or add commentary of any kind.\n\n## Fields to extract\n\nExtract exactly these fields, using these exact keys:\n\n- \"First Name\" (string)\n- \"Last Name\" (string)\n- \"Phone Number\" (string)\n- \"countryShortName\" (string)\n- \"Email Address\" (string)\n- \"Total experience\" (string)\n- \"Age estimate\" (string)\n- \"Time Zone\" (string)\n- \"Summary\" (string)\n\n## Field rules\n\n- \"First Name\" / \"Last Name\": Split the person's full name if given as one string. If only one name is present, put it in \"First Name\" and leave \"Last Name\" as null.\n- \"Phone Number\": Extract exactly as written, preserving digits and formatting. Do not reformat or normalize.\n- \"countryShortName\": A 2-letter ISO 3166-1 alpha-2 country code (e.g. \"US\", \"IN\", \"GB\"). Infer from phone country code, address, time zone, or explicit mention if not stated directly. If truly unknowable, use null.\n- \"Email Address\": Extract exactly as written.\n\n- \"Total experience\": If a total years of experience is explicitly stated, use it. Otherwise, CALCULATE it by examining the work history section: find the earliest job start date and the latest job end date (use the current date for \"Present\"/\"Current\"), sum the durations of professional roles, and express the result as e.g. \"6.5 years\". Exclude internships/education-only periods unless clearly professional experience. If dates are too vague or missing entirely (no work history at all), use null.\n\n- \"Age estimate\": If age or birth date is explicitly stated, use it directly. Otherwise, INFER it from education history: find the graduation date (or expected graduation date) of the highest/earliest listed degree, and estimate age using typical graduation ages as a baseline — approximately 22 for a Bachelor's degree, 18 for a high school diploma, 24 for a Master's, 28 for a Doctorate (adjust up if the person shows a long work history before an advanced degree, suggesting a non-traditional timeline). Calculate forward to the current date from that estimated graduation age. Always express as an approximate range or single best estimate, e.g. \"~29\" or \"27-31\". If no education dates or explicit age/birthdate exist anywhere in the resume, use null. Never guess age from writing style, photo descriptions, or career stage alone — only from explicit dates or education timelines.\n\n- \"Time Zone\": Use standard time zone abbreviation or IANA name if stated. Infer from location/country only if strongly implied; otherwise null.\n\n- \"Summary\": Produce a concise bullet-point summary of the resume as a text of short strings (aim for 4-6 bullets). Cover: current/most recent role and seniority, core skills or specialization, years of experience (reuse the calculated/stated total), notable employers or industries, and highest education credential. Keep each bullet under ~15 words. Base this only on content actually present in the resume — do not invent achievements.\n\n## Strict output rules\n\n1. Output ONLY a single valid JSON object. No markdown code fences, no preamble, no explanation, no trailing text.\n2. Your response MUST begin with the character { and end with the character }. Do NOT wrap the JSON in ```json code fences under any circumstances, even if it seems more readable.\n3. Always include all 9 keys in every response, in this order: First Name, Last Name, Phone Number, countryShortName, Email Address, Total experience, Age estimate, Time Zone, Summary.\n4. If a field cannot be found, calculated, or confidently inferred using the rules above, set its value to null (not an empty string, not \"N/A\"). \"Summary\" should be an empty string \"\" rather than null if there's truly nothing to summarize.\n5. Never fabricate data not supported by the resume text.\n6. Do not include any additional keys beyond the 9 specified.\n7. Respond immediately with the JSON object. Do not narrate your calculations or show your work — only the final field values.\n\nRemember: raw JSON only, starting with { and ending with }. No exceptions, no fences.",
+          "maxTokens": 2048
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        800,
+        16
+      ],
+      "id": "23c766d6-bb8e-4bee-aa83-1be9d57e7746",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "h3TalBYVEwE9m0AS",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = $input.first().json.content;\nfor (const key in content) {\n  const element = content[key];\n  if (element.type === \"text\") {\n    const parsed = JSON.parse(element.text);\n    if (parsed['Phone Number'] || parsed['Email Address']) {\n      parsed['Status'] = 'correct'\n    } else {\n      parsed['Status'] = 'invalid no #'\n    }\n    return { json: parsed };\n  }\n}\nreturn { json: {}}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        16
+      ],
+      "id": "10279507-5e93-43f0-9ba7-e9255edf3618",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cc1598e4-2b3a-4081-8fd8-2833dcf64870",
+              "leftValue": "={{ $json['Email Address'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5d22439d-e034-40e9-909d-f48f00739541",
+              "leftValue": "={{ $json['Phone Number'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -208
+      ],
+      "id": "82b512d5-4426-480e-96d8-abe1ee8c8d0a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c09eab2f-130a-4b76-bb3d-031583c32fa9",
+              "leftValue": "={{ $input.item.json.isEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        944,
+        -192
+      ],
+      "id": "164a1086-e7d4-4f7b-b44e-ea52e350fde3",
+      "name": "not parsed"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.fileId }}"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf",
+              "slidesToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $json.fileName }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        400,
+        0
+      ],
+      "id": "ca20f208-97a0-4b9c-8022-015ebaf198e1",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "xLdDr5loZByBdUiD",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: {}}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        176
+      ],
+      "id": "699a6de7-5a5b-409e-b5a3-e258173d092e",
+      "name": "falback",
+      "alwaysOutputData": false
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "falback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        []
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Moscow",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "id": null,
+          "fileId": null,
+          "fileName": null,
+          "mimeType": "application/pdf",
+          "updatedAt": null,
+          "platform": null,
+          "status": null,
+          "attempts": null,
+          "errorMessage": null,
+          "consumerId": null,
+          "createdAt": null,
+          "startedAt": null
+        }
+      }
+    ],
+    "falback": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "f3395503-16c3-45f1-8821-3953db8c0c30",
+  "activeVersionId": "f3395503-16c3-45f1-8821-3953db8c0c30",
+  "versionCounter": 300,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "versionMetadata": {
+    "name": "Version f3395503",
+    "description": ""
+  }
+}
