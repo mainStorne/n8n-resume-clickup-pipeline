@@ -43,6 +43,7 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
 - An [Anthropic API key](https://console.anthropic.com/)
 - A Google Cloud OAuth2 client with the Drive API enabled (for the Google Drive credential)
 - A ClickUp API token, and a ClickUp list to hold candidate tasks
+- A n8n-cli to [import workflows](https://docs.n8n.io/connect/n8n-cli)
 
 ## Setup
 
@@ -66,15 +67,9 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    docker compose up -d
    ```
 
-3. **n8n owner setup** — open `http://localhost:5678` and complete the initial owner account setup.
+3. **n8n owner setup** — open `http://localhost:5678` and complete the initial owner account setup, create API KEY and save it to n8n-cli.
 
-4. **Create credentials** in n8n (Settings → Credentials):
-   - Google Drive OAuth2
-   - Postgres (host `postgres`, database/user/password from `.env`)
-   - ClickUp API
-   - Anthropic API
-
-5. **Import the workflows** — the whole pipeline (all workflows, their sub-workflow links, referenced credentials, the `SQL_CONFIGS` data table, and tags) ships as a single package, [`export.n8np`](./export.n8np). Import it with the [n8n CLI](https://www.npmjs.com/package/@n8n/cli):
+4. **Import the workflows** — the whole pipeline (all workflows, their sub-workflow links, referenced credentials, the `SQL_CONFIGS` data table, and tags) ships as a single package, [`export.n8np`](./export.n8np). Import it with the [n8n CLI](https://www.npmjs.com/package/@n8n/cli):
 
    ```bash
    n8n-cli package import export.n8np
@@ -82,7 +77,7 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
 
    Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one (Google Drive, Postgres, ClickUp, Anthropic).
 
-6. **Create the `cv_queue` table** in Postgres:
+5. **Create the `cv_queue` table** in Postgres:
 
    ```sql
    CREATE TABLE IF NOT EXISTS public.cv_queue
@@ -104,7 +99,7 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    );
    ```
 
-7. **Create the `SQL_CONFIGS` Data Table** in n8n (Data Tables → New), with columns `config_name` (string) and `config_value` (string), and seed three rows. Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one:
+6. **Create the `SQL_CONFIGS` Data Table** in n8n (Data Tables → New), with columns `config_name` (string) and `config_value` (string), and seed three rows. Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one:
 
    | config_name              | config_value |
    |---------------------------|--------------|
@@ -112,12 +107,8 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    | `workflow_lock_consumer2` | `false`      |
    | `workflow_lock_consumer3` | `false`      |
 
-8. **Point the workflows at your own Google Drive / ClickUp** — the imported workflows ship with placeholder IDs that need replacing with your real values:
-   - `Producer` → "Google Drive Trigger" node: set `folderToWatch` to the Drive folder you want watched (replaces `YOUR_GOOGLE_DRIVE_FOLDER_ID`).
-   - `ClickUp` → "Get custom fields from a list" and "Create a task1" nodes: set `team` / `space` / `folder` / `list` to your ClickUp workspace's IDs (replaces `YOUR_CLICKUP_TEAM_ID`, `YOUR_CLICKUP_SPACE_ID`, `YOUR_CLICKUP_FOLDER_ID`, `YOUR_CLICKUP_LIST_ID`).
-   - `ClickUp` → "Create a task1" node: update the `customFieldsJson` field IDs to match the custom fields on your own ClickUp list (Email Address, Time Zone, Last/First Name, Age Estimate, Total experience, Phone Number, WebViewLink, Summary).
 
-9. **Activate** the trigger/schedule-based workflows (Producer, Consumer 1/2/3, Cleanup, and the three Unlock/Error Trigger workflows).
+7. **Activate** the trigger/schedule-based workflows (Producer, Consumer 1/2/3, Cleanup, and the three Unlock/Error Trigger workflows).
 
 ## Monitoring
 
