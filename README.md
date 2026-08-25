@@ -2,6 +2,8 @@
 
 An [n8n](https://n8n.io) automation that watches a Google Drive folder for new resumes, extracts structured candidate data with Claude, and creates a task in a ClickUp list — with a full self-hosted observability stack (Prometheus, Grafana, Tempo) included.
 
+![preview](./n8n.gif)
+
 ## What it does
 
 1. **Producer** — a Google Drive trigger watches a folder for new files and inserts each one into a Postgres queue table (`cv_queue`). A separate **Backfill** workflow can bulk-import everything already in the folder.
