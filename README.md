@@ -1,6 +1,6 @@
 # n8n Resume → ClickUp Pipeline
 
-An [n8n](https://n8n.io) automation that watches a Google Drive folder for new resumes, extracts structured candidate data with Claude, and creates a task in a ClickUp list — with a full self-hosted observability stack (Prometheus, Grafana, Tempo) included.
+An [n8n](https://n8n.io) automation that watches a Google Drive folder for new resumes, extracts structured candidate data with Claude, and creates a task in a ClickUp list. A companion pipeline places automated interview-reminder phone calls to candidates through [Retell AI](https://www.retellai.com/). A full self-hosted observability stack (Prometheus, Grafana, Tempo) is included.
 
 ![preview](./n8n.gif)
 
@@ -12,6 +12,8 @@ An [n8n](https://n8n.io) automation that watches a Google Drive folder for new r
 4. **ClickUp workflow** — creates a task in a ClickUp list from those fields, mapped onto ClickUp custom fields.
 5. **Cleanup** — a scheduled workflow purges finished rows from the queue.
 6. **Unlock / Error Trigger workflows** — one per consumer; if a consumer crashes mid-batch, these release its pipeline lock so processing isn't stuck.
+7. **Interview reminder calls (Retell AI)** — when a candidate task reaches the interview stage in ClickUp, a ClickUp webhook (`Producer Interview Call`) fetches the task and inserts a row into a Postgres `interview_queue` table with the scheduled interview time. The **Interview Consumer** scheduled workflow claims pending rows with `FOR UPDATE SKIP LOCKED` and the same Data Table lock the CV consumers use, and for each one places an outbound phone call through the Retell AI node — reminding the candidate of their interview, with the date and time spoken in the candidate's own time zone. `Manual Trigger Call` does the same on demand for a single task.
+8. **Post-call sync** — after each call, Retell posts to the `Webhook_retell_agent` webhook, which writes the call summary, recording URL, and outcome status back onto the ClickUp task as a comment.
 
 ```mermaid
 flowchart LR
@@ -25,6 +27,13 @@ flowchart LR
     Parsing --> ClickUp[ClickUp workflow\ncreate task]
     ClickUp --> Queue
     Cleanup[Cleanup workflow] --> Queue
+
+    ClickUp -->|interview stage| PIC[Producer Interview Call]
+    PIC --> IQ[(Postgres interview_queue)]
+    IQ --> IC[Interview Consumer]
+    IC -->|outbound call| Retell[Retell AI]
+    Retell -->|post-call webhook| Sync[Webhook_retell_agent]
+    Sync -->|comment| ClickUp
 ```
 
 ## Stack
@@ -45,6 +54,7 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
 - An [Anthropic API key](https://console.anthropic.com/)
 - A Google Cloud OAuth2 client with the Drive API enabled (for the Google Drive credential)
 - A ClickUp API token, and a ClickUp list to hold candidate tasks
+- A [Retell AI](https://www.retellai.com/) API key, plus a configured Retell agent and outbound phone number (for the interview reminder calls)
 - A n8n-cli to [import workflows](https://docs.n8n.io/connect/n8n-cli)
 
 ## Setup
@@ -77,7 +87,7 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    n8n-cli package import export.n8np
    ```
 
-   Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one (Google Drive, Postgres, ClickUp, Anthropic).
+   Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one (Google Drive, Postgres, ClickUp, Anthropic, Retell AI).
 
 5. **Create the `cv_queue` table** in Postgres:
 
@@ -101,6 +111,22 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    );
    ```
 
+   And the `interview_queue` table used by the Retell AI interview-call pipeline:
+
+   ```sql
+   CREATE TABLE IF NOT EXISTS public.interview_queue
+   (
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    task_id text COLLATE pg_catalog."default" NOT NULL,
+    interview_time timestamp with time zone,
+    status text COLLATE pg_catalog."default" NOT NULL DEFAULT 'pending'::text,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT interview_queue_pkey PRIMARY KEY (id),
+    CONSTRAINT interview_queue_task_id_key UNIQUE (task_id)
+   );
+   ```
+
 6. **Create the `SQL_CONFIGS` Data Table** in n8n (Data Tables → New), with columns `config_name` (string) and `config_value` (string), and seed three rows. Imported nodes reference credential IDs from the original instance, which won't resolve here — open each workflow and re-select the correct credential on every node that needs one:
 
    | config_name              | config_value |
@@ -110,7 +136,9 @@ All service ports are bound to `127.0.0.1` only. Put a reverse proxy or SSH tunn
    | `workflow_lock_consumer3` | `false`      |
 
 
-7. **Activate** the trigger/schedule-based workflows (Producer, Consumer 1/2/3, Cleanup, and the three Unlock/Error Trigger workflows).
+7. **Activate** the trigger/schedule-based workflows (Producer, Consumer 1/2/3, Cleanup, the three Unlock/Error Trigger workflows, and — for the interview-call pipeline — `Interview Consumer`, `Producer Interview Call`, and `Webhook_retell_agent`).
+
+8. **Wire up Retell AI** — point your Retell agent's post-call webhook at the `Webhook_retell_agent` production URL (`/webhook/post-call`), and register a ClickUp webhook for the `Producer Interview Call` URL (`/webhook/post-task`) so task updates reach the pipeline. Both n8n webhook URLs must be reachable from Retell and ClickUp (use a reverse proxy or tunnel, since ports are bound to `127.0.0.1`).
 
 ## Monitoring
 
